@@ -1,0 +1,210 @@
+{% extends "_base_lsst.html" %}{% load url from future %}
+
+{% block page_title %} {{ viewParams.MON_VO }} PanDA user {{ user }} {% endblock %}
+{% block title %} <a href="{% url 'index' %}">{{ viewParams.MON_VO }} PanDA monitor</a>{% endblock %}
+{% block subtitle %}PanDA user <b>{{ user }}</b>{{ viewParams.selection|safe }}{% endblock %}
+
+{% block body %}
+
+<p>
+<div class='section'>User page for <a href="{% url 'userInfo' user %}?display_limit=100">{{user}}</a></div>
+
+{% if requestParams.priorityrange %}<br><b>Current priority range: {{ requestParams.priorityrange }}</b> {% endif %}
+{% if requestParams.jobsetrange %}<br><b>Jobset ID range: {{ requestParams.jobsetrange }}</b> {% endif %}
+{% if requestParams.jobsetid %}<br><b>Jobset ID: {{ requestParams.jobsetid }}</b> {% endif %}
+</p>
+
+{% if userstats %}
+<table>
+<tr class='tablesection'><th colspan=20>Stats from the user DB (updated every few hours)</th></tr>
+<tr class='tablesection'>
+<th> User </th>
+<th> Jobs in last week </th>
+<th> Latest job in the DB stats </th>
+<th> Personal CPU-hrs - 1 day </th>
+<th> Personal CPU-hrs - 7 days </th>
+<th> Group CPU-hrs - 1 day </th>
+<th> Group CPU-hrs - 7 days </th>
+</tr>
+
+<tr>
+<td> {{ userstats.name }} </td>
+<td> {% if userstats.njobsa %}{{ userstats.njobsa }} {% endif %}</td>
+<td>{{ userstats.latestjob|date:"Y-m-d H:i" }}</td>
+
+{% comment %}
+<td class='finished'> {{ userstats.nfinished }} </td>
+<td class='failed'> {{ userstats.nfailed }} </td>
+<td class='holding'> {{ userstats.nholding }} </td>
+<td class='cancelled'> {{ userstats.ncancelled }} </td>
+<td class='defined'> {{ userstats.nqueued }} </td>
+{% endcomment %}
+<td> {% if userstats.cpua1 %}{{ userstats.cpua1 }} {% endif %}</td>
+<td> {% if userstats.cpua7 %}{{ userstats.cpua7 }} {% endif %}</td>
+<td> {% if userstats.cpup1 %}{{ userstats.cpup1 }} {% endif %}</td>
+<td> {% if userstats.cpup7 %}{{ userstats.cpup7 }} {% endif %}</td>
+</tr>
+</table>
+
+<p>
+{% endif %}
+
+<b>Jump to {% if ntasks > 0 %} <a href="#tasks">owned tasks</a> {% endif %} &nbsp; {% if njobsets > 0 %} <a href="#jobsets">recent jobsets</a> {% endif %} &nbsp; {% if njobs > 0 %} <a href="#jobs">recent jobs</a> {% endif %}
+</b>
+<p>
+
+{% if njobs > 0 %}
+
+<p><b>{{ njobs }} jobs</b>
+<br>Job <b>modification times</b> in this listing range from <b>{{ tfirst|date:"Y-m-d H:i" }}</b> to <b>{{ tlast|date:"Y-m-d H:i" }}</b>.
+<br>Job <b>current priorities</b> in this listing range from <b>{{ plow }}</b> to <b>{{ phigh }}</b>. See priorityrange in the job attribute summary to see how priorities are distributed.
+
+<div class='section'><a href="{% url 'errorSummary' %}?produsername={{ user }}">Show recent job errors</a></div><p>
+
+<table>
+<tr class='tablesection'><th colspan=20> Recent job attributes </th></tr>
+{% for fdict in jobsumd %}
+<tr><th> {{ fdict.field }} ({{ fdict.list|length }}) </th><td>
+
+{% if fdict.list|length > 300 %}
+{{ fdict.list|length }} {{ fdict.field }} values is too many to show
+{% else %}
+{% for item in fdict.list %}
+{% if fdict.field == 'jobstatus' %} <span class='{{item.kname}}'> {% else %} <span> {% endif %}  {{ item.kname }} </span>
+<a href="{{xurl}}{{fdict.field}}={{item.kname}}">({{ item.kvalue }})</a> &nbsp; 
+{% endfor %}
+{% endif %}
+</td></tr>
+{% endfor %}
+</table>
+
+{% endif %}
+
+{% if ntasks > 0 %}
+
+<table>
+<tr class='tablesection'><th colspan=20> <a name="tasks"></a>JEDI tasks owned by {{ user }} </th></tr>
+<tr class='tablesection'>
+	<th>ID<br>Type</th>
+	<th>Name<br>User</th>
+	<th>Status</th>
+	<th>Created</th>
+	<th>Modified</th>
+	<th>Cores</th>
+	<th>Priority</th>
+	<th>Parent</th>
+</tr>
+    {% for task in tasks %}
+	<tr>
+		<td><a href="{% url 'taskInfo' task.jeditaskid %}">{{ task.jeditaskid }}</a><br>{{ task.tasktype }}</td>
+		<td><font size=-1>{{ task.taskname }}<br>{{ task.username }}</font></td>
+		<td class='{{task.status}}'>{{ task.status }}</td>
+		<td>{{ task.creationdate|date:"Y-m-d H:i" }}</td>
+		<td>{{ task.modificationtime|date:"m-d H:i" }}</td>
+		<td>{{ task.corecount }}</td>
+		<td>{{ task.taskpriority }}</td>
+		<td>{% if task.parent_tid != task.jeditaskid %}<a href="{% url 'taskInfo' task.parent_tid %}">{{ task.parent_tid }}</a>{% endif %}</td>
+
+	</tr>
+    {% endfor %}
+</table>
+
+{% endif %}
+
+{% if njobsets > 0 %}
+
+<table>
+<tr class='tablesection'><th colspan=20> <a name="jobsets"></a> Recent jobsets {% if njobsetmax <= njobsets %} (listing limited to {{ njobsetmax }}. Use the jobset ranges in the attribute summary to see more jobsets) {% endif %} </th></tr>
+<tr class='tablesection'>
+<th> Jobset ID </th>
+<th> nJobs </th>
+<th> Modification times </th>
+<th> Priorities </th>
+<th> defined </th>
+<th> waiting </th>
+<th> assigned </th>
+<th> activated </th>
+<th> sent </th>
+<th> starting </th>
+<th> running </th>
+<th> holding </th>
+<th> transferring </th>
+<th> finished </th>
+<th> failed </th>
+<th> cancelled </th>
+</tr>
+{% for jobset in jobsets %}
+<tr>
+<th> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&display_limit=100">{{ jobset.jobsetid }}</a></th>
+<td> {{ jobset.njobs }} </td>
+<td> {{ jobset.tfirst|date:"Y-m-d H:i" }} to {{ jobset.tlast|date:"m-d H:i" }} </td>
+<td> {{ jobset.plow }} to {{ jobset.phigh }} </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=defined&display_limit=100"><span class="defined">{{ jobset.sum.defined }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=waiting&display_limit=100"><span class="waiting">{{ jobset.sum.waiting }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=assigned&display_limit=100"><span class="assigned">{{ jobset.sum.assigned }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=activated&display_limit=100"><span class="activated">{{ jobset.sum.activated }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=sent&display_limit=100"><span class="sent">{{ jobset.sum.sent }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=starting&display_limit=100"><span class="starting">{{ jobset.sum.starting }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=running&display_limit=100"><span class="running">{{ jobset.sum.running }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=holding&display_limit=100"><span class="holding">{{ jobset.sum.holding }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=transferring&display_limit=100"><span class="transferring">{{ jobset.sum.transferring }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=finished&display_limit=100"><span class="finished">{{ jobset.sum.finished }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=failed&display_limit=100"><span class="failed">{{ jobset.sum.failed }}</span></a> </td>
+<td> <a href="{% url 'jobList' %}?produsername={{ user }}&jobsetid={{ jobset.jobsetid }}&jobstatus=cancelled&display_limit=100"><span class="cancelled">{{ jobset.sum.cancelled }}</span></a> </td>
+</tr>
+{% endfor %}
+</table>
+<p>
+{% endif %}
+
+{% if njobs > 0 %}
+
+<table>
+<tr class='tablesection'><th colspan=20> <a name="jobs"></a>Recent jobs {% if display_limit < jobList|length %} &nbsp; &nbsp; 
+Only the most recent {{ display_limit }} jobs are shown. <a href="{{ url_nolimit }}">Remove the limit</a>
+{% endif %}</th></tr>
+<tr class='tablesection'>
+	<th>Panda ID<br>Attempt#<br>Group {% if viewParams.MON_VO != 'ATLAS' %}VO{% endif %}</th>
+	<th>Transformation</th>
+	<th>Jobset</th>
+	<th>Status</th>
+	<th>Created</th>
+	<th>Time<br>to start</th>
+	<th>Duration</th>
+	<th>Mod</th>
+	<th>{% if viewParams.MON_VO == 'ATLAS' %}Cloud {% endif%}Site</th>
+	<th>Priority</th>
+	<th>Job info</th>
+</tr>
+    {% for job in jobList %}
+	<tr>
+		<td><a href="{% url 'jobInfo' %}?pandaid={{ job.pandaid }}">{{ job.pandaid }}</a>{% if job.attemptnr > 1 %}<br>Attempt {{ job.attemptnr }}{% endif %}{% if job.workinggroup %}<br>{{ job.workinggroup }}{% endif %}{% if viewParams.MON_VO != 'ATLAS' %}{% if job.vo %}<br>{{ job.vo }}{% endif %}{% endif %}</td>
+		<td class='{{job.transformation}}'><font size=-1>{{ job.transformation }}</font></td>
+		<td>{% if job.jobsetid %}<a href="{{xurl}}jobsetid={{job.jobsetid}}">{{ job.jobsetid }}</a>{% endif %}</td>
+		<td class='{{job.jobstatus}}'>{{ job.jobstatus }}</td>
+		<td><font size=-1>{{ job.creationtime|date:"Y-m-d H:i" }}</font></td>
+		<td><font size=-1>{{ job.waittime }}</font></td>
+		<td><font size=-1>{{ job.duration }}</font></td>
+		<td><font size=-1>{{ job.modificationtime|date:"m-d H:i" }}</font></td>
+		<td><font size=-1>{% if viewParams.MON_VO == 'ATLAS' %}<a href="{{xurl}}cloud={{job.cloud}}">{{job.cloud}}</a> {% endif %}<a href="{% url 'siteInfo' job.computingsite %}">{{ job.computingsite }}</a><font></td>
+		<td>{{ job.currentpriority }}</td>
+		<td width=200>{% if job.errorinfo != '' %}<font size=-1 class='alarm'>{{job.errorinfo|safe}}</font>{% endif %}</td>
+	</tr>
+    {% endfor %}
+</table>
+
+{% else %}
+
+No jobs found.
+
+{% endif %}
+
+{% endblock %}
+
+{% block helptext %}
+
+New documentation on JEDI for analysis, its advantages and how to use it, 
+<a href="https://twiki.cern.ch/twiki/bin/view/PanDA/PandaJediAnalysis">can be found here</a>.
+Give it a try! This monitor supports analysis with JEDI. 
+
+{% endblock %}

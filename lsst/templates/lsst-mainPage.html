@@ -1,0 +1,197 @@
+{% extends "_base_lsst.html" %}{% load url from future %}
+
+{% block page_title %} {{ viewParams.MON_VO }} PanDA{% endblock %}
+{% block title %} {{ viewParams.MON_VO }} PanDA monitor{% endblock %}
+{% block subtitle %}{{ viewParams.MON_VO }} PanDA monitor home page{% endblock %}
+
+{% block bottom_info %}
+
+{% if requestParams|length == 0 %}
+
+{% if viewParams.MON_VO == 'ATLAS' %}
+
+<div class='section'>ATLAS PanDA processing overview from 
+<a href="http://grid.triumf.ca/">TRIUMF</a>
+<a href="http://panglia.triumf.ca">Panglia</a>. 
+Panglia has <a href="http://panglia.triumf.ca/world/generator.php">world</a>, 
+<a href="http://panglia.triumf.ca/cloud/generator.php">cloud</a>,
+<a href="http://panglia.triumf.ca/site/generator.php">site</a>
+plot generators
+
+</div>
+<table border='0'>
+<tr>
+<td><a target='_blank' href='http://panglia.triumf.ca/world/graph.php?TIME=day&amp;SSTATE=running&amp;VIEW=bysstate&amp;QUEUE=production&amp;SIZE=large'>
+<img width='100%' src='http://panglia.triumf.ca/world/graph.php?TIME=day&amp;SSTATE=running&amp;VIEW=bysstate&amp;QUEUE=production&amp;SIZE=medium'
+alt='Daily World Production Queues'></a>
+</td>
+<td><a target='_blank' href='http://panglia.triumf.ca/world/graph.php?TIME=day&amp;SSTATE=running&amp;VIEW=bysstate&amp;QUEUE=analysis&amp;SIZE=large'>
+<img width='100%' src='http://panglia.triumf.ca/world/graph.php?TIME=day&amp;SSTATE=running&amp;VIEW=bysstate&amp;QUEUE=analysis&amp;SIZE=medium'
+alt='Daily World Analysis Queues'></a>
+</td>
+<td><a target='_blank' href='http://panglia.triumf.ca/world/graph.php?TIME=day&amp;SSTATE=running&amp;VIEW=bysstate&amp;QUEUE=combined&amp;SIZE=large'>
+<img width='100%' src='http://panglia.triumf.ca/world/graph.php?TIME=day&amp;SSTATE=running&amp;VIEW=bysstate&amp;QUEUE=combined&amp;SIZE=medium'
+alt='Daily World Production and Analysis Queues (combined)'></a>
+</td>
+</tr>
+</table>
+
+{% else %}
+
+<p>
+Welcome to the {{ viewParams.MON_VO }} PanDA monitor.
+Select what you'd like to have a look at in the top menu bar: dashboard overview; job and task lists; error summaries; user lists and pages; site, cloud and WN information; etc.
+
+{% endif %}
+
+{% endif %}
+<p>
+
+<table height="30px">
+<tr><td> <div class='section'>Search</div></td>
+<td>
+
+<table>
+<tr><td><form action="{% url 'jobInfo' %}" method='get'>
+PanDA job ID or name</td><td><font size=-1> <input id="pandaid" name="pandaid" size="25" maxlength="200" class="inputW" />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'jobInfo' %}" method='get'>
+Batch ID</td><td><font size=-1> <input id="batchid" name="batchid" size="25" maxlength="200" class="inputW" />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'taskInfo' %}?" method='get'>
+Task ID </td><td><font size=-1><input id="jeditaskid" name="jeditaskid" size="25" maxlength="15" class="inputW" /><input type='hidden' name="display_limit" readonly="readonly" value=100 />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'taskInfo' %}" method='get'>
+Task name </td><td><font size=-1><input id="taskname" name="taskname" size="25" maxlength="400" class="inputW" /><input type='hidden' name="display_limit" readonly="readonly" value=100 />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'siteInfo' %}" method='get'>
+Site </td><td><font size=-1><input id="site" name="site" size="25" maxlength="50" class="inputW" />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'userInfo' %}" method='get'>
+User </td><td><font size=-1><input id="user" name="user" size="25" maxlength="50" class="inputW" /><input type='hidden' name="display_limit" readonly="readonly" value=100 />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'datasetInfo' %}" method='get'>
+Dataset </td><td><font size=-1><input id="datasetname" name="datasetname" size="25" maxlength="300" class="inputW" /><input type='hidden' name="display_limit" readonly="readonly" value=100 />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'fileInfo' %}" method='get'>
+File </td><td><font size=-1><input id="filename" name="filename" size="25" maxlength="300" class="inputW" />&nbsp;<input type='submit' value='Submit' /></form></font></td></tr>
+
+<tr><td><form action="{% url 'jobList' %}" method='get'>
+Stalled jobs </td><td> in 
+<select name="jobstatus" class="input8">
+    <option value="defined"><span class="defined">defined</span></option>
+    <option value="waiting"><span class="waiting">waiting</span></option>
+    <option value="assigned"><span class="assigned">assigned</span></option>
+    <option value="activated"><span class="activated">activated</span></option>
+    <option value="starting"><span class="starting">starting</span></option>
+    <option value="running"><span class="running">running</span></option>
+    <option value="holding"><span class="holding">holding</span></option>
+    <option value="transferring"><span class="transferring">transferring</span></option>
+</select>
+for over <font size=-1><input id="statenotupdated" name="statenotupdated" class="inputN" /> hours &nbsp; <input type='hidden' name="display_limit" readonly="readonly" value=100 /><input type='submit' value='Submit' /></form></font></td></tr>
+
+
+</table>
+
+</td>
+
+{% if requestParams|length == 0 %}
+
+<td> <div class='section'>News </td>
+<td>
+<div style="width:500px;height:100%;overflow:auto;word-wrap: break-word;"><font size=-1>
+<!-- most recent at the top -->
+<li class="news">20140711: Add error interpretation from the ErrorCodes.py descriptions
+<li class="news">20140710: JEDI action log added to task detail page
+<li class="news">20140709: Site job listings and WN info pages changed to 12hr default
+<li class="news">20140709: Support computingsite wildcards in error summary. See error page help.
+<li class="news">20140709: Direct navigation to clouds in Sites menu
+<li class="news">20140708: %fail numbers on dashboard and task list click through to error summary
+<li class="news">20140708: Stalled jobs search added
+<li class="news">20140708: Show jobs transferring &gt;36hrs, by cloud, in prod dash
+<li class="news">20140707: Task page sorting added
+<li class="news">20140704: Links to <a href="https://twiki.cern.ch/twiki/bin/view/PanDA/PandaJediAnalysis">new documentation on JEDI for analysis</a>
+<li class="news">20140703: Metadata added to job pages
+<li class="news">20140702: Added contextual help framework
+<li class="news">20140702: Improved file info for JEDI's more complex file processing
+<li class="news">20140701: Added working group task summary to WG dashboard
+<li class="news">20140701: Added inline dataset list, job parameters to task detail page
+<li class="news">20140630: Show input file counts (Nfiles, Nfinished, Nfailed) for tasks to indicate progress
+<li class="news">20140630: Ticket specs retrieved from JEDI task table (not taskparams) for better performance
+<li class="news">20140626: Task status labelled as JEDI task status in list and detail views, for clarity. Prodsys/DEFT/JEDI state documentation linked from task detail pages.
+<li class="news">20140626: JIRA ticket links added to task list and detail pages
+<li class="news">20140626: JEDI log information added to task list and detail pages
+<li class="news">20140624: Priority ranges added to job attribute summaries to show how priorities are apportioned and allow drill-down
+<li class="news">20140624: Jobset ranges added to job attribute summaries to de-clutter listings with many jobsets
+<li class="news">20140623: Debug mode supported in job detail pages (—debugMode option on analysis jobs; for production use see <a href="https://twiki.cern.ch/twiki/bin/view/PanDA/PandaShiftGuide#How_to_use_debug_mode">here</a>)
+<li class="news">20140622: Show time to start, duration instead of start time, end time
+<li class="news">20140621: JEDI dataset, file, file list pages added, linked from job detail pages, quick search etc.
+<li class="news">20140620: JEDI work queue added under Sites menu
+<li class="news">20140620: Event service job, task listings added
+<li class="news">20140617: Expanded sorting support
+<li class="news">20140617: Show multi-cloud production sites associated with clouds
+<li class="news">20140616: PanDA logger added
+<li class="news">20140611: Throttled state supported
+<li class="news">20140610: Working group dashboard added, summarizing job status by WG
+</ul>
+</font></div>
+</td>
+
+{% endif %}
+
+</tr></table>
+
+{% endblock %}
+
+{% block helptext %}
+
+{% if requestParams|length == 0 %}
+
+<p>
+This contextual help section is found at the bottom of each monitor page.
+Use the help menu in the upper right corner to navigate directly here.
+</p>
+
+<p>
+Send your suggestions and requests for the PanDA monitor (or PanDA in general) to <a href="mailto:atlas-adc-pandamon-support@cern.ch">PanDA monitor support</a>.
+</p>
+
+<p>
+PanDA is described and (kind of) documented on the <a href="http://twiki.cern.ch/twiki/bin/view/PanDA/PanDA">PanDA twiki</a>.
+</p>
+
+{% if viewParams.MON_VO == 'ATLAS' %}
+
+<p>
+For ATLAS users there is documentation on <a href='https://twiki.cern.ch/twiki/bin/view/PanDA/DAonPanda'>distributed analysis on PanDA</a> describing how to use pathena, prun etc.
+<br><b>New documentation on JEDI for analysis</b>, its advantages and how to use it, 
+<a href="https://twiki.cern.ch/twiki/bin/view/PanDA/PandaJediAnalysis">can be found here</a>.
+Give it a try! This monitor supports analysis with JEDI. 
+
+</p>
+
+<p>
+Use the <a href="https://groups.cern.ch/group/hn-atlas-dist-analysis-help">hn-atlas-dist-analysis-help e-group</a> to learn about distributed analysis problems and their reported solutions and to report problems of your own.
+A <a href='https://twiki.cern.ch/twiki/bin/view/AtlasComputing/AtlasDAST'>distributed analysis shift team (DAST)</a> provides user support for distributed analysis. The <a href='https://atlas-logbook.cern.ch/elog/ATLAS+Computer+Operations+Logbook/'>ATLAS Computer Operations Logbook</a> logs service issues with PanDA and much else.
+Issues with ATLAS PanDA itself are tracked in the <a href="https://its.cern.ch/jira/browse/ATLASPANDA">JIRA ATLASPANDA project</a>.
+Other ATLAS PanDA specifics can be found on the <a href="https://twiki.cern.ch/twiki/bin/viewauth/AtlasComputing/PanDA">ATLAS-internal PanDA twiki</a>.
+</p>
+
+{% endif %}
+
+{% endif %}
+
+<p><ul>
+<b>Notes on available searches:</b>
+<li class="news"> PanDA ID or name: numeric ID or full job name, displays job detail page
+<li class="news"> Batch ID: the batch system ID for the batch job running the pilot. Used e.g. by site people to find what PanDA job a local batch job corresponds to.
+<li class="news"> Task ID: the numeric ID for a JEDI task, displays the task's detail page. Detail pages for old (non-JEDI) tasks are not available. For old type tasks, the search brings up a listing of jobs in the task.
+<li class="news"> Task name: as above, using task name rather than numeric ID.
+<li class="news"> Site: the name of a PanDA site (PanDA resource), displays a detail page for the site. From there you can click through to details on worker node performance etc.
+<li class="news"> User: the user name exactly as known to PanDA, case insensitive. See the user list pages for the names as known to PanDA.
+<li class="news"> Dataset: the JEDI dataset name, displays a detail page for the dataset. JEDI datasets record information necessary for processing datasets, they are not part of the data management system. 
+<li class="news"> File: as for datasets; these are the files contained in JEDI datasets. The file information records e.g. processing attempts on a file (full file or range of events in a file).
+<li class="news"> Stalled jobs: shows jobs that have been in the selected state for more than N hours (determined from the statechangetime job parameter)
+</ul></p>
+
+{% endblock %}
